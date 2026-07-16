@@ -1,20 +1,6 @@
-# power-platform-rbac-sample-scripts
+# Power Platform RBAC Sample Scripts
 
 Sample PowerShell scripts for managing [Power Platform role-based access control (RBAC)](https://learn.microsoft.com/en-us/power-platform/admin/security/role-based-access-control) via the [Power Platform Authorization API](https://learn.microsoft.com/en-us/rest/api/power-platform/authorization/role-based-access-control).
-
-> **Preview**: Power Platform RBAC is a preview feature and is subject to change. It isn't meant for production use. See the [official documentation](https://learn.microsoft.com/en-us/power-platform/admin/security/role-based-access-control) for the latest guidance.
-
-## Background
-
-Power Platform RBAC lets you assign built-in roles to **security principals** (users, groups, and service principals / managed identities) at one of three **scopes**:
-
-| Scope             | Description                                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| Tenant            | Broad permissions across all environment groups and environments.                            |
-| Environment group | A logical grouping of environments. Permissions apply to all environments in the group.      |
-| Environment       | An individual environment. Permissions apply to all resources in that environment.           |
-
-Assignments made at a broader scope are **inherited** by lower scopes unless specifically overridden. The scripts in this repo focus on the **environment group** scope, including fanning an assignment out to each environment inside a group.
 
 ### Built-in Power Platform roles
 

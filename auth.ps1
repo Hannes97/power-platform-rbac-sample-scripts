@@ -1,18 +1,11 @@
-# Acquires an app-only (client credentials) access token for the Power Platform API
-# and returns ready-to-use request headers.
+# Acquires an app-only (client credentials) access token for the Power Platform API and returns ready-to-use request headers.
 #
 # Requirements:
-#   1. The app registration (config.ClientId) must have the required Power Platform API
-#      *application* permissions granted with admin consent, e.g.:
-#        - AppManagement.ApplicationPackages.Install
-#        - EnvironmentManagement.Environments.Read (and related EnvironmentManagement.* scopes)
-#        - Licensing.Allocations.Read
-#      In the Azure portal: App registration > API permissions > Add a permission >
-#      APIs my organization uses > "Power Platform API" > Application permissions.
-#   2. The service principal must be registered as a Power Platform management application:
-#        Add-PowerAppsAccount
-#        New-PowerAppManagementApp -ApplicationId <config.ClientId>
-#      (from the Microsoft.PowerApps.Administration.PowerShell module).
+#   The app registration (config.ClientId) must have the required Power Platform API *application* permissions granted with admin consent, e.g.:
+#       - AppManagement.ApplicationPackages.Install
+#       - EnvironmentManagement.Environments.Read (and related EnvironmentManagement.* scopes)
+#       - Licensing.Allocations.Read
+#   In the Azure portal: App registration > API permissions > Add a permission > APIs my organization uses > "Power Platform API" > Application permissions.
 #
 # Usage:
 #   $config  = & "$PSScriptRoot\..\config.ps1"

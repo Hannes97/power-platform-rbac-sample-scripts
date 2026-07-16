@@ -3,18 +3,16 @@ $config = & "$PSScriptRoot\..\config.ps1"
 # Set to $false to actually create assignments
 $DryRun = $true
 
-# Authenticate and obtain an access token
-Connect-AzAccount
-$secureToken = (Get-AzAccessToken -TenantId $config.TenantId -ResourceUrl "https://api.powerplatform.com/").Token
-$accessToken = [System.Net.NetworkCredential]::new("", $secureToken).Password
+# Authenticate (app-only) and obtain request headers
+$headers = & "$PSScriptRoot\..\auth.ps1" $config
 
-$headers = @{ 'Authorization' = 'Bearer ' + $accessToken }
-$headers.Add('Content-Type', 'application/json')
+# List of role definition ids: https://learn.microsoft.com/en-us/power-platform/admin/security/role-based-access-control#built-in-power-platform-roles
+$roleDefinitionId = "ff954d61-a89a-4fbe-ace9-01c367b89f87" # Power Platform Contributor
 
 # Get environments in environment group
 Write-Host "Reading Environment Group..." -ForegroundColor Cyan
  
-$environmentsResponse = Invoke-RestMethod -Method GET -Uri "https://api.powerplatform.com/environmentGroups/$($config.EnvironmentGroupId)/environments?api-version=2024-10-01" -Headers $headers
+$environmentsResponse = Invoke-RestMethod -Method GET -Uri "https://api.powerplatform.com/environmentmanagement/environments?`$filter=environmentGroupId%20eq%20'$($config.EnvironmentGroupId)'&api-version=2024-10-01" -Headers $headers
 $environments = $environmentsResponse.value
 
 Write-Host "Found $($environments.Count) environments"
@@ -31,7 +29,7 @@ foreach ($env in $environments) {
 
     $existingAssignments = Invoke-RestMethod -Method GET -Uri $assignmentUri -Headers $headers
 
-    $existing = $existingAssignments.value | Where-Object { $_.principalObjectId -eq $config.EnterpriseAppObjectId -and $_.roleDefinitionId -eq $RoleDefinitionId }
+    $existing = $existingAssignments.value | Where-Object { $_.principalObjectId -eq $config.EnterpriseAppObjectId -and $_.roleDefinitionId -eq $roleDefinitionId }
 
     if ($existing) {
         Write-Host "Already assigned" -ForegroundColor Green
@@ -41,7 +39,7 @@ foreach ($env in $environments) {
     $body = @{
         principalObjectId = $config.EnterpriseAppObjectId
         principalType     = "ApplicationUser"
-        roleDefinitionId  = $RoleDefinitionId
+        roleDefinitionId  = $roleDefinitionId
         scope             = "/environments/$environmentId"
     } | ConvertTo-Json
 

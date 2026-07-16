@@ -11,9 +11,6 @@ $headers.Add('Content-Type', 'application/json')
 # Role definition ids (https://learn.microsoft.com/en-us/power-platform/admin/security/role-based-access-control#built-in-power-platform-roles)
 $roleDefinitionId = "ff954d61-a89a-4fbe-ace9-01c367b89f87" # Power Platform Contributor
 
-Write-Host "EnvGroupID:"
-Write-Host $config.EnvironmentGroupId
-
 $body = @{
     principalObjectId = $config.EnterpriseAppObjectId
     principalType     = "ApplicationUser"
@@ -22,10 +19,7 @@ $body = @{
 } | ConvertTo-Json -Depth 5
 
 try {
-    $response = Invoke-RestMethod -Method Post -Uri "https://api.powerplatform.com/authorization/environmentGroups/$($config.EnvironmentGroupId)/roleAssignments?api-version=2024-10-01" -Headers $headers -Body $body
-
-    # Display the response
-    $response
+    Invoke-RestMethod -Method Post -Uri "https://api.powerplatform.com/authorization/environmentGroups/$($config.EnvironmentGroupId)/roleAssignments?api-version=2024-10-01" -Headers $headers -Body $body
 }
 catch {
     if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::Conflict) {

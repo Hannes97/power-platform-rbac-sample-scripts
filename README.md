@@ -18,10 +18,10 @@ The assignment scripts default to **Power Platform contributor**. To use a diffe
 ## Prerequisites
 
 - [PowerShell 7+](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell)
-- The [Az.Accounts PowerShell module](https://learn.microsoft.com/en-us/powershell/azure/install-azure-powershell) (`Connect-AzAccount`, `Get-AzAccessToken`) for the interactive scripts.
-- The calling identity must hold the **Power Platform Administrator** or **Power Platform role-based access control administrator** role.
+- The [Az.Accounts PowerShell module](https://learn.microsoft.com/en-us/powershell/azure/install-azure-powershell) (`Connect-AzAccount`, `Get-AzAccessToken`).
+- An **admin identity** that holds the **Power Platform Administrator** or **Power Platform role-based access control administrator** role.
 
-The `list-group-role-assignments.ps1` and `assign-role-to-all-group-environments.ps1` scripts authenticate **app-only** (client credentials) via `auth.ps1`. This requires an app registration with the appropriate Power Platform API *application* permissions (admin-consented) that is also registered as a Power Platform management application. See the header comments in [`auth.ps1`](auth.ps1) and the [Authentication guide](https://learn.microsoft.com/en-us/power-platform/admin/programmability-authentication-v2) for setup details.
+The app-only service principal used by `assign-role-to-all-group-environments.ps1` requires an app registration with the appropriate Power Platform API *application* permissions (admin-consented) that is also registered as a Power Platform management application. See the header comments in [`auth.ps1`](auth.ps1) and the [Authentication guide](https://learn.microsoft.com/en-us/power-platform/admin/programmability-authentication-v2) for setup details.
 
 ## Configuration
 
@@ -37,12 +37,12 @@ The scripts read their settings from a `config.ps1` file in the repository root.
 
    | Key                     | Description                                                                                              |
    | ----------------------- | -------------------------------------------------------------------------------------------------------- |
-   | `TenantId`              | Azure AD (Microsoft Entra) tenant / directory ID.                                                       |
+   | `TenantId`              | Microsoft Entra (Azure AD) tenant ID.                                                       |
    | `EnterpriseAppObjectId` | Enterprise application object ID of the service principal / managed identity to assign a role to.        |
-   | `EntraUserObjectId`     | Object ID of the Microsoft Entra user to assign a role to.                                               |
+   | `EntraUserObjectId`     | Object ID of the Microsoft Entra user to assign a role to (if desired).                                               |
    | `EnvironmentGroupId`    | ID of the Power Platform environment group to target.                                                   |
-   | `ClientId`              | App registration client ID (used by the app-only scripts via `auth.ps1`).                               |
-   | `ClientSecret`          | App registration client secret (used by the app-only scripts via `auth.ps1`).                           |
+   | `ClientId`              | App registration client ID (used by the app-only service principal in `auth.ps1`).                      |
+   | `ClientSecret`          | App registration client secret (used by the app-only service principal in `auth.ps1`).                  |
 
 ## Scripts
 
@@ -54,7 +54,7 @@ All scripts live under `environment-groups/` and are run from the repository roo
 ./environment-groups/list-group-role-assignments.ps1
 ```
 
-Prints the current role assignments on the configured environment group as JSON. Authenticates app-only via `auth.ps1`.
+Prints the current role assignments on the configured environment group as JSON, then filters for the service principal's assignments. Authenticates interactively via `Connect-AzAccount`.
 
 ### Assign a role to a service principal
 
@@ -78,11 +78,13 @@ Assigns the **Power Platform contributor** role to the `EntraUserObjectId` user 
 ./environment-groups/assign-role-to-all-group-environments.ps1
 ```
 
-Enumerates every environment inside the configured environment group and assigns the **Power Platform contributor** role to the `EnterpriseAppObjectId` principal at each **environment** scope (rather than at the group scope). Runs in dry-run mode by default; set `$DryRun = $false` in the script to create the assignments. Authenticates app-only via `auth.ps1`.
+Enumerates every environment inside the configured environment group and assigns the **Power Platform contributor** role to the `EnterpriseAppObjectId` principal at each **environment** scope (rather than at the group scope). Runs in dry-run mode by default; set `$DryRun = $false` in the script to create the assignments.
+
+This script uses two identities: the app-only service principal (via `auth.ps1`) reads the environments in the group, and an interactive admin user (`Connect-AzAccount`) reads and creates the role assignments.
 
 ## Notes
 
-- The interactive scripts call `Connect-AzAccount` to obtain an access token for `https://api.powerplatform.com/`; the app-only scripts use the client credentials flow in `auth.ps1`.
+- The scripts call `Connect-AzAccount` to obtain an interactive admin access token for `https://api.powerplatform.com/`. `assign-role-to-all-group-environments.ps1` additionally uses the client credentials flow in `auth.ps1` to read the group's environments with the service principal.
 - To use a different role, change the `$roleDefinitionId` variable in the relevant script. See the [built-in Power Platform roles](https://learn.microsoft.com/en-us/power-platform/admin/security/role-based-access-control#built-in-power-platform-roles).
 
 ## References
